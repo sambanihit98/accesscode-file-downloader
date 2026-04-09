@@ -11,7 +11,7 @@ Author URI: https://sam-banihit.vercel.app/
 AccessCode File Downloader - TABLE OF CONTENTS
 -----------------------------------------------------------
 1. Custom Post Type
-    1.1 Register Secure Downloads CPT
+    1.1 Register AccessCode File Downloader CPT
     1.2 Add Meta Boxes (Code + File URL)
     1.3 Save Meta Box Data
 
@@ -22,7 +22,7 @@ AccessCode File Downloader - TABLE OF CONTENTS
 
 3. AJAX & Download Handler
     3.1 AJAX Validate Code
-    3.2 Handle Secure Download
+    3.2 Handle AccessCode File Downloader
 
 4. Admin Columns
     4.1 Add Custom Columns
@@ -38,20 +38,20 @@ if (!defined('ABSPATH')) exit;
 1. Custom Post Type
 ------------------------------------------------------------------------- */
 
-# 1.1 Register Secure Downloads CPT
+# 1.1 Register AccessCode File Downloader CPT
 function acfd_register_download_cpt()
 {
     $labels = array(
-        'name' => 'Secure Downloads',
-        'singular_name' => 'Secure Download',
+        'name' => 'AccessCode File Downloader',
+        'singular_name' => 'AccessCode File Downloader',
         'add_new' => 'Add New',
-        'add_new_item' => 'Add New Download',
-        'edit_item' => 'Edit Download',
-        'new_item' => 'New Download',
-        'view_item' => 'View Download',
-        'search_items' => 'Search Downloads',
-        'not_found' => 'No downloads found',
-        'menu_name' => 'Secure Downloads',
+        'add_new_item' => 'Add New File',
+        'edit_item' => 'Edit File',
+        'new_item' => 'New File',
+        'view_item' => 'View File',
+        'search_items' => 'Search Files',
+        'not_found' => 'No files found',
+        'menu_name' => 'AccessCode File Downloader',
     );
 
     $args = array(
@@ -71,7 +71,7 @@ function acfd_add_meta_boxes()
 {
     add_meta_box(
         'acfd_download_details',
-        'Download Details',
+        'File Details',
         'acfd_download_details_callback',
         'acfd_download',
         'normal',
@@ -225,7 +225,7 @@ function acfd_validate_code_ajax()
 add_action('wp_ajax_acfd_validate_code', 'acfd_validate_code_ajax');
 add_action('wp_ajax_nopriv_acfd_validate_code', 'acfd_validate_code_ajax');
 
-# 3.2 Handle Secure Download
+# 3.2 Handle AccessCode File Downloader
 function acfd_handle_acfd_button()
 {
     if (!isset($_GET['acfd_token'])) return;
