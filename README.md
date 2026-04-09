@@ -20,12 +20,15 @@ Users must enter a valid code to download files, ensuring secure and controlled 
 
 ## Installation
 
-1. Download the plugin ZIP or clone this repository.  
-2. Upload to the `/wp-content/plugins/` directory.  
-3. Activate the plugin through the WordPress admin dashboard.  
-4. Create **Secure Downloads** from the admin menu.  
-5. Add the **access code** and **file URL** for each download.  
-6. Use the shortcode `[acfd_button id="POST_ID" text="Download File"]` to display the download button anywhere on your site.
+1. Go to your WordPress installation directory.  
+2. Navigate to `/wp-content/plugins/`.  
+3. Create a folder named `accesscode-file-downloader`.  
+4. Download this plugin file (`accesscode-file-downloader.php`) and place it inside the folder you just created.  
+5. Go to your WordPress admin dashboard → Plugins → Installed Plugins.  
+6. Activate **AccessCode File Downloader**.  
+7. Create **Secure Downloads** from the admin menu.  
+8. Add the **access code** and **file URL** for each download.  
+9. Use the shortcode `[acfd_button id="POST_ID" text="Download File"]` to display the download button anywhere on your site.
 
 ---
 
