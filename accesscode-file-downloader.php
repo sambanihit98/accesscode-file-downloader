@@ -28,6 +28,10 @@ AccessCode File Downloader - TABLE OF CONTENTS
     4.1 Add Custom Columns
     4.2 Render Column Content
     4.3 Copy Shortcode Script
+
+5. Customizer Settings
+    5.1 Register Customizer Options
+    5.2 Output Dynamic Styles
 -----------------------------------------------------------
 */
 
@@ -129,7 +133,7 @@ function acfd_download_button_shortcode($atts)
     $output = '<div style="text-align:' . esc_attr($atts['align']) . ';">';
     $output .= '<button class="acfd-open-modal-btn btn"';
     $output .= ' data-download-id="' . esc_attr($atts['id']) . '"';
-    $output .= ' style="display:inline-block;padding:12px 25px;border-radius:5px;border:1px solid #ccc; background-color:#7c3aed; color:#ffffff;';
+    $output .= ' style="display:inline-block;padding:12px 25px;border-radius:5px;border:1px solid #ccc;';
     $output .= 'text-decoration:none;margin:0 5px 0 0;font-weight:500;">';
     $output .= esc_html($atts['text']);
     $output .= '</button>';
@@ -150,7 +154,7 @@ function acfd_render_modal()
             <h3>Enter Access Code</h3>
             <input type="text" id="acfd-code-input" placeholder="Enter code" style="border-radius: 5px; border:1px solid #ccc;">
             <input type="hidden" id="acfd-download-id">
-            <button type="button" id="acfd-submit-code" class="btn" style="display:inline-block;padding:12px 25px;border-radius:5px; border:1px solid #ccc; background-color:#7c3aed; color:#ffffff;">Submit</button>
+            <button type="button" id="acfd-submit-code" class="btn" style="display:inline-block;padding:12px 25px;border-radius:5px; border:1px solid #ccc;">Submit</button>
             <div id="acfd-message" style="margin-top:10px;"></div>
         </div>
     </div>
@@ -316,7 +320,116 @@ function acfd_admin_copy_script()
                 });
             });
         </script>
-<?php
+    <?php
     }
 }
 add_action('admin_footer', 'acfd_admin_copy_script');
+
+/* -------------------------------------------------------------------------
+5. Customizer Settings
+------------------------------------------------------------------------- */
+
+# 5.1 Register Customizer Options
+function acfd_customize_register($wp_customize)
+{
+    $wp_customize->add_section('acfd_section', array(
+        'title'    => 'AccessCode File Downloader',
+        'priority' => 160,
+    ));
+
+    // Button Background Color
+    $wp_customize->add_setting('acfd_button_bg', array(
+        'default' => '#7c3aed',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'acfd_button_bg',
+            array(
+                'label'   => 'Button Background Color',
+                'section' => 'acfd_section',
+            )
+        )
+    );
+
+    // Button Hover Color
+    $wp_customize->add_setting('acfd_button_hover', array(
+        'default' => '#9259f3',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'acfd_button_hover',
+            array(
+                'label'   => 'Button Hover Color',
+                'section' => 'acfd_section',
+            )
+        )
+    );
+
+    // Button Text Color
+    $wp_customize->add_setting('acfd_button_text', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'acfd_button_text',
+            array(
+                'label'   => 'Button Text Color',
+                'section' => 'acfd_section',
+            )
+        )
+    );
+
+    // Button Text Hover Color 
+    $wp_customize->add_setting('acfd_button_text_hover', array(
+        'default' => '#ffffff',
+        'sanitize_callback' => 'sanitize_hex_color',
+    ));
+
+    $wp_customize->add_control(
+        new WP_Customize_Color_Control(
+            $wp_customize,
+            'acfd_button_text_hover',
+            array(
+                'label'   => 'Button Text Hover Color',
+                'section' => 'acfd_section',
+            )
+        )
+    );
+}
+add_action('customize_register', 'acfd_customize_register');
+
+# 5.2 Output Dynamic Styles
+function acfd_customizer_css()
+{
+    $bg        = get_theme_mod('acfd_button_bg', '#7c3aed');
+    $hover     = get_theme_mod('acfd_button_hover', '#9259f3');
+    $text      = get_theme_mod('acfd_button_text', '#ffffff');
+    $textHover = get_theme_mod('acfd_button_text_hover', '#ffffff');
+    ?>
+    <style>
+        .acfd-open-modal-btn,
+        #acfd-submit-code {
+            background-color: <?php echo esc_attr($bg); ?>;
+            color: <?php echo esc_attr($text); ?>;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .acfd-open-modal-btn:hover,
+        #acfd-submit-code:hover {
+            background-color: <?php echo esc_attr($hover); ?>;
+            color: <?php echo esc_attr($textHover); ?>;
+        }
+    </style>
+<?php
+}
+add_action('wp_head', 'acfd_customizer_css');
