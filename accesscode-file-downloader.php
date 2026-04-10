@@ -2,7 +2,7 @@
 /*
 Plugin Name: AccessCode File Downloader
 Description: Easily protect your files with an access code. Users must enter a valid code to download files, ensuring secure and controlled file distribution. Perfect for private resources, premium content, or confidential documents.
-Version: 1.0
+Version: 1.0.0
 Author: Sam Banihit
 Author URI: https://sam-banihit.vercel.app/
 */
