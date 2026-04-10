@@ -39,8 +39,6 @@ Users must enter a valid code to download files, ensuring secure and controlled 
 
 ```php
 [acfd_button id="POST_ID" text="Download File" align="center"]
-
-```
 ```
 
 ### Parameters
