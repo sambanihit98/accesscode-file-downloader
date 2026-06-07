@@ -97,6 +97,7 @@ function acfd_download_details_callback($post)
     <p>
         <label for="acfd_file_url"><strong>File URL</strong></label><br>
         <input type="text" name="acfd_file_url" id="acfd_file_url" value="<?php echo esc_attr($file); ?>" style="width:100%;">
+        <small>Get the link of the file in Media Library and copy the File URL</small><br />
         <small>Example: https://yourwebsite.com/wp-content/uploads/file.pdf</small>
     </p>
 <?php
@@ -160,6 +161,7 @@ function acfd_render_modal()
     </div>
     <?php
 }
+add_action('wp_body_open', 'acfd_render_modal');
 add_action('wp_footer', 'acfd_render_modal');
 
 # 2.3 Enqueue CSS + JS Assets
@@ -167,35 +169,121 @@ function acfd_enqueue_assets()
 {
     wp_enqueue_script('jquery');
 
-    wp_add_inline_style('wp-block-library', '
-        #acfd-modal { position: fixed; top:0; left:0; width:100%; height:100%; z-index:9999; }
-        .acfd-modal-overlay { position:absolute; width:100%; height:100%; background:rgba(0,0,0,0.6); }
-        .acfd-modal-content { position:relative; background:#fff; max-width:400px; margin:10% auto; padding:25px; border-radius:10px; z-index:2; }
-        .acfd-close-modal { position:absolute; top:10px; right:12px; background:none; border:none; font-size:24px; cursor:pointer; }
-        #acfd-code-input { width:100%; padding:10px; margin-top:10px; }
-        #acfd-submit-code { margin-top:15px; padding:10px 20px; }
+    // Create our own style handle
+    wp_register_style('acfd-style', false);
+    wp_enqueue_style('acfd-style');
+
+    wp_add_inline_style('acfd-style', '
+        #acfd-modal{
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            z-index:999999;
+            display:none;
+        }
+
+        .acfd-modal-overlay{
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.6);
+        }
+
+        .acfd-modal-content{
+            position:relative;
+            background:#fff;
+            max-width:400px;
+            width:90%;
+            margin:10vh auto;
+            padding:25px;
+            border-radius:10px;
+            z-index:2;
+            box-sizing:border-box;
+        }
+
+        .acfd-close-modal{
+            position:absolute;
+            top:10px;
+            right:12px;
+            background:none;
+            border:none;
+            font-size:24px;
+            cursor:pointer;
+        }
+
+        #acfd-code-input{
+            width:100%;
+            padding:10px;
+            margin-top:10px;
+            box-sizing:border-box;
+        }
+
+        #acfd-submit-code{
+            margin-top:15px;
+            padding:10px 20px;
+        }
     ');
 
     wp_add_inline_script('jquery', '
-        jQuery(document).ready(function($) {
-            $(".acfd-open-modal-btn").on("click", function() {
+        jQuery(function($){
+
+            $(document).on("click", ".acfd-open-modal-btn", function(e){
+                e.preventDefault();
+
                 $("#acfd-download-id").val($(this).data("download-id"));
                 $("#acfd-code-input").val("");
                 $("#acfd-message").html("");
                 $("#acfd-modal").fadeIn();
             });
-            $(".acfd-close-modal, .acfd-modal-overlay").on("click", function() { $("#acfd-modal").fadeOut(); });
-            $("#acfd-submit-code").on("click", function() {
+
+            $(document).on("click", ".acfd-close-modal, .acfd-modal-overlay", function(){
+                $("#acfd-modal").fadeOut();
+            });
+
+            $(document).on("click", "#acfd-submit-code", function(){
+
                 var code = $("#acfd-code-input").val();
                 var download_id = $("#acfd-download-id").val();
-                $.post("' . admin_url('admin-ajax.php') . '", { action:"acfd_validate_code", code:code, download_id:download_id }, function(response) {
-                    if(response.success) {
-                        $("#acfd-message").html("<span style=\'color:green;\'>Code accepted. Downloading...</span>");
-                        window.location.href = response.data.download_url;
-                        setTimeout(function(){ $("#acfd-modal").fadeOut(); }, 1000);
-                    } else { $("#acfd-message").html("<span style=\'color:red;\'>Invalid code.</span>"); }
+
+                $.ajax({
+                    url: "' . admin_url('admin-ajax.php') . '",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        action: "acfd_validate_code",
+                        code: code,
+                        download_id: download_id
+                    },
+                    success: function(response){
+
+                        if(response.success){
+
+                            $("#acfd-message").html(
+                                "<span style=\"color:green;\">Code accepted. Downloading...</span>"
+                            );
+
+                            window.location.href = response.data.download_url;
+
+                            setTimeout(function(){
+                                $("#acfd-modal").fadeOut();
+                            },1000);
+
+                        } else {
+
+                            $("#acfd-message").html(
+                                "<span style=\"color:red;\">Invalid code.</span>"
+                            );
+
+                        }
+                    }
                 });
+
             });
+
         });
     ');
 }
@@ -279,6 +367,7 @@ function acfd_add_admin_columns($columns)
         $new_columns[$key] = $value;
         if ($key === 'title') {
             $new_columns['acfd_post_id'] = 'Post ID';
+            $new_columns['acfd_access_code'] = 'Access Code';
             $new_columns['acfd_shortcode'] = 'Shortcode';
         }
     }
@@ -290,9 +379,20 @@ add_filter('manage_acfd_download_posts_columns', 'acfd_add_admin_columns');
 function acfd_render_admin_columns($column, $post_id)
 {
     if ($column === 'acfd_post_id') echo '<strong>' . $post_id . '</strong>';
+
+    if ($column === 'acfd_access_code') {
+        $access_code = get_post_meta($post_id, '_acfd_access_code', true);
+
+        if (!empty($access_code)) {
+            echo '<strong>' . esc_html($access_code) . '</strong>';
+        } else {
+            echo '—';
+        }
+    }
+
     if ($column === 'acfd_shortcode') {
         $shortcode = '[acfd_button id="' . $post_id . '" text="Download File"]';
-        echo '<input type="text" readonly value="' . esc_attr($shortcode) . '" style="width:100%; max-width:280px; margin-bottom:6px;" id="acfd-shortcode-' . $post_id . '">';
+        echo '<input type="text" readonly value="' . esc_attr($shortcode) . '" style="width:100%; margin-bottom:6px;" id="acfd-shortcode-' . $post_id . '">';
         echo '<button type="button" class="button acfd-copy-shortcode-btn" data-target="acfd-shortcode-' . $post_id . '">Copy</button>';
     }
 }
